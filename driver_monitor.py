@@ -3,7 +3,7 @@ import mediapipe as mp
 import numpy as np
 from scipy.spatial import distance as dist
 import torch
-from transformers import ViTImageProcessor, ViTForImageClassification , pipeline
+from transformers import ViTImageProcessor, ViTForImageClassification , pipeline 
 import time
 from datetime import datetime
 from PIL import Image
@@ -13,7 +13,6 @@ import tensorflow as tf
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
-os.environ['TF_CPP_VMODULE'] = 'memory=2'
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 if tf.config.list_physical_devices('GPU'):
     tf.config.experimental.set_memory_growth(tf.config.list_physical_devices('GPU')[0], True)
@@ -82,9 +81,12 @@ class DriverMonitor:
             model="nateraw/vit-age-classifier",
             device=0 if torch.cuda.is_available() else -1
         )
+        self.age_model = self.age_classifier.model.to(self.device)
+        print("Models loaded")
+        
 
         # Create log file
-        self.log_file = open(f"driver_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt", "w")
+        #self.log_file = open(f"driver_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt", "w")
 
 
     def initialize_metrics(self):
@@ -100,7 +102,7 @@ class DriverMonitor:
         self.EYE_AR_CONSEC_FRAMES = 60
         self.YAWN_THRESH = 0.53
         self.YAWN_CONSEC_FRAMES = 30
-        self.HAND_FACE_DIST_THRESH = 0.15
+        self.HAND_FACE_DIST_THRESH = 0.13
         self.MIN_FACE_SIZE = 100
         
         
@@ -363,8 +365,8 @@ class DriverMonitor:
 
         cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
         cap.set(cv2.CAP_PROP_FPS, 31)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 
         try:
@@ -390,7 +392,7 @@ class DriverMonitor:
         finally:
             cap.release()
             cv2.destroyAllWindows()
-            self.log_file.close()
+            #self.log_file.close()
 
 if __name__ == "__main__":
     if torch.cuda.is_available():
